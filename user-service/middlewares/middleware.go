@@ -1,8 +1,13 @@
 package middlewares
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"net/http"
+	"strings"
 	"user-service/common/response"
+	"user-service/config"
 	"user-service/constants"
 	errConstant "user-service/constants/error"
 
@@ -41,4 +46,37 @@ func RateLimiter(lmt *limiter.Limiter) gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func ExtractBearerToken(token string) string {
+	arrayToken := strings.Split(token, " ")
+	if len(arrayToken) == 2 {
+		return arrayToken[1]
+	}
+	return ""
+}
+
+func ResponseUnauthorized(c *gin.Context, message string) {
+	c.JSON(http.StatusUnauthorized, response.Response{
+		Status:  constants.Error,
+		Message: message,
+	})
+	c.Abort()
+}
+
+func ValidateApiKey(c *gin.Context) error {
+	apiKey := c.GetHeader(constants.XApiKey)
+	requestAt := c.GetHeader(constants.XRequestAt)
+	serviceName := c.GetHeader(constants.XServiceName)
+	signatureKey := config.Config.SignatureKey
+
+	validateKey := fmt.Sprintf("%s:%s:%s", serviceName, signatureKey, requestAt)
+	hash := sha256.New()
+	hash.Write([]byte(validateKey))
+	resultHash := hex.EncodeToString(hash.Sum(nil))
+
+	if apiKey != resultHash {
+		return errConstant.ErrUnauthorized
+	}
+	return nil
 }

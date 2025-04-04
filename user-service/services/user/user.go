@@ -193,7 +193,7 @@ func (u *UserService) Update(ctx context.Context, req *dto.UpdateRequest, uuid s
 		}
 	}
 
-	if &req.Password != &req.ConfirmPassword {
+	if req.Password != req.ConfirmPassword {
 		return nil, errConstant.ErrPasswordDoesNotMatch
 	}
 
@@ -217,7 +217,7 @@ func (u *UserService) Update(ctx context.Context, req *dto.UpdateRequest, uuid s
 	}
 
 	data = &dto.UserResponse{
-		UUID:        userResult.UUID,
+		UUID:        user.UUID,
 		Name:        userResult.Name,
 		Username:    userResult.Username,
 		PhoneNumber: userResult.PhoneNumber,

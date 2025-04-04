@@ -53,7 +53,7 @@ var command = &cobra.Command{
 		service := services.NewServiceRegistry(repository)
 		controller := controllers.NewUserController(service)
 
-		router := *gin.Default()
+		router := gin.Default()
 		router.Use(middlewares.HandlePanic())
 		router.NoRoute(func(c *gin.Context) {
 			c.JSON(http.StatusNotFound, response.Response{
